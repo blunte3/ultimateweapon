@@ -142,18 +142,14 @@
             <a href="{% url 'settings' %}" class="btn btn-primary">Settings</a>
         </div>
     </nav>
-
-    <div class="container-fluid bg-dark text-white p-3">
-        <h2 class="display-4">{{ display_name }}'s Player Info</h2>
-    </div>
     
     <div class="container mt-3">
         <div class="row">
             <!-- Left side: User info -->
             <div class="col-md-3">
-                <img src="{{ custom_user.image.url }}" alt="{{ custom_user.display_name }}" class="img-fluid">
+                <p>{{ display_name }}</p>
+                <img src="{{ character_image }}" alt="{{ display_name }}" class="img-fluid">
                 <p>Total XP: {{ total_xp }}</p>
-                <p>Display Name: {{ display_name }}</p>
             </div>
     
             <!-- Right side: Tasks -->

@@ -143,40 +143,42 @@
         </div>
     </nav>
 
-    <!-- Tab panes -->
-    <div class="tab-content">
-        <div class="tab-pane fade show active" id="home">
-            <div class="container mt-3">
-                <!-- Home Page Content Goes Here -->
+    <div class="container-fluid bg-dark text-white p-3">
+        <h2 class="display-4">{{ display_name }}'s Player Info</h2>
+    </div>
+    
+    <div class="container mt-3">
+        <div class="row">
+            <!-- Left side: User info -->
+            <div class="col-md-3">
+                <img src="{{ custom_user.image.url }}" alt="{{ custom_user.display_name }}" class="img-fluid">
+                <p>Total XP: {{ total_xp }}</p>
+                <p>Display Name: {{ display_name }}</p>
             </div>
-        </div>
-        <div class="tab-pane fade" id="player">
-            <div class="container mt-3">
-                {% if short_tasks %}
-                <h3>Short Tasks</h3>
-                <div class="task-container">
-                    {% for task in short_tasks %}
-                        <div data-task-id="{{ task.id }}" class="task">
-                            <input type="checkbox" class="task-checkbox" data-task-id="{{ task.id }}" data-category="Short">
-                            {{ task.name }} XP: {{ task.xp }}
+    
+            <!-- Right side: Tasks -->
+            <div class="col-md-9">
+                <div class="tab-content">
+                    <div class="tab-pane fade show active" id="home">
+                        <!-- Home Page Content Goes Here -->
+                    </div>
+                    <div class="tab-pane fade" id="player">
+                        {% if short_tasks %}
+                        <h3>Short Tasks</h3>
+                        <div class="task-container">
+                            {% for task in short_tasks %}
+                                <div data-task-id="{{ task.id }}" class="task">
+                                    <input type="checkbox" class="task-checkbox" data-task-id="{{ task.id }}" data-category="Short">
+                                    {{ task.name }} XP: {{ task.xp }}
+                                </div>
+                            {% endfor %}
                         </div>
-                    {% endfor %}
+                        {% endif %}
+                    </div>
                 </div>
-                {% endif %}
-            </div>
-        </div>
-        <div class="tab-pane fade" id="data">
-            <div class="container mt-3">
-                <!-- Data Page Content Goes Here -->
-            </div>
-        </div>
-        <div class="tab-pane fade" id="items">
-            <div class="container mt-3">
-                <!-- Items Page Content Goes Here -->
             </div>
         </div>
     </div>
-
 </body>
 
 </html>

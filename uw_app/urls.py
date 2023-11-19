@@ -11,5 +11,5 @@ urlpatterns = [
     path('', views.index, name="index"),
     path('settings', views.settings, name="settings"),
     path('player', views.player, name="player"),
-     path('complete-task', views.complete_task, name='complete_task'),
+    path('complete-task', views.complete_task, name='complete_task'),
 ]

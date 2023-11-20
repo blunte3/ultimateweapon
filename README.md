@@ -37,7 +37,7 @@ Connect with a vibrant community of like-minded individuals. Share tips, support
 ### Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/ultimate-weapon.git
+git clone https://github.com/blunte3/ultimate-weapon.git
 ```
 
 ## Set Up Your Environment

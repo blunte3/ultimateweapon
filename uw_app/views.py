@@ -216,17 +216,12 @@ def player(request):
         # Define a unique cache key for the user's tasks
         cache_key = f'user_tasks_{request.user.id}'
         custom_user, created = CustomUser.objects.get_or_create(user=request.user)
+
         # Get the authenticated user's pathway and difficulty level
         user_pathway = custom_user.pathway
         user_difficulty = custom_user.difficulty
-        # Try to get the tasks from the cache
-        short_tasks = custom_user.short_tasks
-        medium_tasks = custom_user.medium_tasks
-        long_tasks = custom_user.long_tasks
-        
 
-
-        if not short_tasks and medium_tasks and long_tasks: 
+        if not custom_user.daily_tasks.exists() and not custom_user.weekly_tasks.exists() and not custom_user.monthly_tasks.exists():
             if user_pathway == 'SCHOLAR':
                 category_names = ['Creativity', 'Intelligence', 'Knowledge']
             elif user_pathway == 'TINKERER':
@@ -239,59 +234,54 @@ def player(request):
             tasks = Task.objects.filter(subcategory__category__name__in=category_names, completed=False)
 
             # Categorize tasks based on XP points
-            short_tasks = []
-            medium_tasks = []
-            long_tasks = []
-
+            daily_tasks = []
+            weekly_tasks = []
+            monthly_tasks = []
+            current_daily = []
+            current_weekly = []
+            current_monthly = []
             for task in tasks:
                 if task.xp < 10:
-                    short_tasks.append(task)
+                    task.type = "daily"
+                    daily_tasks.append(task)
                 elif task.xp < 20:
-                    medium_tasks.append(task)
+                    task.type = "weekly"
+                    weekly_tasks.append(task)
                 else:
-                    long_tasks.append(task)
+                    task.type = "monthly"
+                    monthly_tasks.append(task)
 
-            random.shuffle(short_tasks)
-            random.shuffle(medium_tasks)
-            random.shuffle(long_tasks)
+            shuffle(daily_tasks)
+            shuffle(weekly_tasks)
+            shuffle(monthly_tasks)
 
             # Select the appropriate number of tasks based on the difficulty level
             if user_difficulty == "Easy":
-                current_short = short_tasks[:2]
-                current_medium = medium_tasks[:1]                    
-                current_long = long_tasks[:1]
+                current_daily = daily_tasks[:2]
+                current_weekly = weekly_tasks[:1]
+                current_monthly = monthly_tasks[:1]
             elif user_difficulty == "Medium":
-                current_short = short_tasks[:3]
-                current_medium = medium_tasks[:2]
-                current_long = long_tasks[:1]
+                current_daily = daily_tasks[:3]
+                current_weekly = weekly_tasks[:2]
+                current_monthly = monthly_tasks[:1]
             elif user_difficulty == "Hard":
-                current_short = short_tasks[:4]
-                current_medium = medium_tasks[:3]
-                current_long = long_tasks[:1]
-            elif user_difficulty == "Ultimate Weapon":
-                current_short = short_tasks[:5]
-                current_medium = medium_tasks[:3]
-                current_long = long_tasks[:2]
+                current_daily = daily_tasks[:4]
+                current_weekly = weekly_tasks[:3]
+                current_monthly = monthly_tasks[:1]
+            elif user_difficulty == "ULTIMATE WEAPON":
+                current_daily = daily_tasks[:5]
+                current_weekly = weekly_tasks[:3]
+                current_monthly = monthly_tasks[:2]
 
-            short_tasks = current_short
-            medium_tasks = current_medium
-            long_tasks = current_long
-                
             # When updating tasks
-            custom_user.short_tasks = [task.id for task in short_tasks]
-            custom_user.medium_tasks = [task.id for task in medium_tasks]
-            custom_user.long_tasks = [task.id for task in long_tasks]
+            custom_user.daily_tasks.set(current_daily)
+            custom_user.weekly_tasks.set(current_weekly)
+            custom_user.monthly_tasks.set(current_monthly)
             custom_user.save()
 
-        short_task_ids = custom_user.short_tasks
-        medium_task_ids = custom_user.medium_tasks
-        long_task_ids = custom_user.long_tasks
-
-        short_tasks = Task.objects.filter(id__in=short_task_ids)
-        medium_tasks = Task.objects.filter(id__in=medium_task_ids)
-        long_tasks = Task.objects.filter(id__in=long_task_ids)
-
-
+        daily_tasks = custom_user.daily_tasks.all().values_list('id', flat=True)
+        weekly_tasks = custom_user.weekly_tasks.all().values_list('id', flat=True)
+        monthly_tasks = custom_user.monthly_tasks.all().values_list('id', flat=True)
 
         return render(request, 'uw_app/player.html', {
             'display_name': custom_user.display_name,
@@ -299,14 +289,16 @@ def player(request):
             'difficulty': custom_user.difficulty,
             'pathway': custom_user.pathway,
             'total_xp': custom_user.total_xp,
-            'short_tasks': short_tasks,
-            'medium_tasks': medium_tasks,
-            'long_tasks': long_tasks,
+            'daily_tasks': daily_tasks,
+            'weekly_tasks': weekly_tasks,
+            'monthly_tasks': monthly_tasks,
         })
     else:
         # Redirect to the home page or display an error message for unauthenticated users
         return redirect('home')
 
+
+from django.db.models import F
 
 @login_required
 def complete_task(request):
@@ -314,7 +306,7 @@ def complete_task(request):
         task_id = request.POST.get('task_id')
 
         try:
-            task = Task.objects.get(id=task_id, completed=False)  # Ensure the task is not already completed
+            task = Task.objects.get(id=task_id, completed=False)
         except Task.DoesNotExist:
             return JsonResponse({'success': False, 'error': 'Task not found or already completed.'})
 
@@ -337,26 +329,62 @@ def complete_task(request):
         custom_user.total_xp += task.xp
         custom_user.save()
 
-        # Check if all tasks in 'Short' are completed
-        all_short_tasks_completed = all(Task.objects.get(id=task_id).completed for task_id in custom_user.short_tasks)
-        if all_short_tasks_completed:
-            # Shuffle and save new tasks
-            short_tasks = Task.objects.filter(subcategory__name='Short', completed=False).order_by('?')[:5]
-            custom_user.short_tasks = [task.id for task in short_tasks]
+        user_difficulty = custom_user.difficulty
 
-        # Check if all tasks in 'Medium' are completed
-        all_medium_tasks_completed = all(Task.objects.get(id=task_id).completed for task_id in custom_user.medium_tasks)
-        if all_medium_tasks_completed:
+        # Check if all tasks in 'daily' are completed
+        all_daily_tasks_completed = custom_user.daily_tasks.filter(completed=True).count() == custom_user.daily_tasks.count()
+        if all_daily_tasks_completed:
+            print("ALL DAILY COMPLETED")
+            for task in custom_user.daily_tasks.all():
+                task.completed = False
+                task.save()
             # Shuffle and save new tasks
-            medium_tasks = Task.objects.filter(subcategory__name='Medium', completed=False).order_by('?')[:3]
-            custom_user.medium_tasks = [task.id for task in medium_tasks]
+            if user_difficulty == "Easy":
+                daily_tasks = Task.objects.filter(type='daily', completed=False).order_by('?')[:2]
+            elif user_difficulty == "Medium":
+                daily_tasks = Task.objects.filter(type='daily', completed=False).order_by('?')[:3]
+            elif user_difficulty == "Hard":
+                daily_tasks = Task.objects.filter(type='daily', completed=False).order_by('?')[:4]
+            elif user_difficulty == "ULTIMATE WEAPON":
+                daily_tasks = Task.objects.filter(type='daily', completed=False).order_by('?')[:5]
 
-        # Check if all tasks in 'Long' are completed
-        all_long_tasks_completed = all(Task.objects.get(id=task_id).completed for task_id in custom_user.long_tasks)
-        if all_long_tasks_completed:
+            custom_user.daily_tasks.set(daily_tasks)
+            print(daily_tasks)
+        # Check if all tasks in 'weekly' are completed
+        all_weekly_tasks_completed = custom_user.weekly_tasks.filter(completed=True).count() == custom_user.weekly_tasks.count()
+        if all_weekly_tasks_completed:
+            for task in custom_user.weekly_tasks.all():
+                task.completed = False
+                task.save()
             # Shuffle and save new tasks
-            long_tasks = Task.objects.filter(subcategory__name='Long', completed=False).order_by('?')[:2]
-            custom_user.long_tasks = [task.id for task in long_tasks]
+            if user_difficulty == "Easy":
+                weekly_tasks = Task.objects.filter(type='weekly', completed=False).order_by('?')[:1]
+            elif user_difficulty == "Medium":
+                weekly_tasks = Task.objects.filter(type='weekly', completed=False).order_by('?')[:2]
+            elif user_difficulty == "Hard":
+                weekly_tasks = Task.objects.filter(type='weekly', completed=False).order_by('?')[:3]
+            elif user_difficulty == "ULTIMATE WEAPON":
+                weekly_tasks = Task.objects.filter(type='weekly', completed=False).order_by('?')[:3]
+
+            custom_user.weekly_tasks.set(weekly_tasks)
+
+        # Check if all tasks in 'monthly' are completed
+        all_monthly_tasks_completed = custom_user.monthly_tasks.filter(completed=True).count() == custom_user.monthly_tasks.count()
+        if all_monthly_tasks_completed:
+            for task in custom_user.monthly_tasks.all():
+                task.completed = False
+                task.save()
+            # Shuffle and save new tasks
+            if user_difficulty == "Easy":
+                monthly_tasks = Task.objects.filter(type='monthly', completed=False).order_by('?')[:1]
+            elif user_difficulty == "Medium":
+                monthly_tasks = Task.objects.filter(type='monthly', completed=False).order_by('?')[:1]
+            elif user_difficulty == "Hard":
+                monthly_tasks = Task.objects.filter(type='monthly', completed=False).order_by('?')[:1]
+            elif user_difficulty == "ULTIMATE WEAPON":
+                monthly_tasks = Task.objects.filter(type='monthly', completed=False).order_by('?')[:2]
+
+            custom_user.monthly_tasks.set(monthly_tasks)
 
         custom_user.save()
 
@@ -365,3 +393,4 @@ def complete_task(request):
     else:
         print('complete_tasks skipped')
         return JsonResponse({'success': False, 'error': 'Invalid request.'})
+

@@ -293,6 +293,7 @@ def player(request):
             'daily_tasks': daily_tasks,
             'weekly_tasks': weekly_tasks,
             'monthly_tasks': monthly_tasks,
+            'level': custom_user.level,
         })
     else:
         # Redirect to the home page or display an error message for unauthenticated users
@@ -442,6 +443,8 @@ def complete_task(request):
         if category.xp > 10000:
             category.xp = category.xp - 10000
             category.level += 1
+            custom_user.level += 1
+            custom_user.save()
             category.save()
 
         print('Complete task view completed.')

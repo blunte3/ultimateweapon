@@ -31,6 +31,7 @@ class CustomUser(models.Model):
     pathway = models.ManyToManyField(Subcategory, related_name='pathway', blank=True)
     difficulty = models.CharField(max_length=20, choices=[("Easy", "Easy"), ("Medium", "Medium"), ("Hard", "Hard"), ("ULTIMATE WEAPON", "ULTIMATE WEAPON")], default="Easy")    
     total_xp = models.IntegerField(default=0)
+    level = models.IntegerField(default=0)
 
     daily_tasks = models.ManyToManyField(Task, related_name='daily_tasks', blank=True)
     weekly_tasks = models.ManyToManyField(Task, related_name='weekly_tasks', blank=True)

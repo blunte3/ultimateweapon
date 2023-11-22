@@ -290,6 +290,20 @@ def player(request):
             for task in custom_user.daily_tasks.all():
                 task.completed = False
                 task.save()
+                # Update subcategory XP
+                subcategory = task.subcategory
+                subcategory.xp -= task.xp // 2
+                subcategory.save()
+
+                # Update category XP
+                category = subcategory.category
+                category.xp -= task.xp // 2
+                category.save()
+
+                # Update user's total XP
+                custom_user = CustomUser.objects.get(user=request.user)
+                custom_user.total_xp -= task.xp // 2
+                custom_user.save()
 
             # Get user's selected subcategories
             selected_subcats = custom_user.pathway.all()
@@ -316,6 +330,20 @@ def player(request):
             for task in custom_user.weekly_tasks.all():
                 task.completed = False
                 task.save()
+                # Update subcategory XP
+                subcategory = task.subcategory
+                subcategory.xp -= task.xp // 2
+                subcategory.save()
+
+                # Update category XP
+                category = subcategory.category
+                category.xp -= task.xp // 2
+                category.save()
+
+                # Update user's total XP
+                custom_user = CustomUser.objects.get(user=request.user)
+                custom_user.total_xp -= task.xp // 2
+                custom_user.save()
 
             # Get user's selected subcategories
             selected_subcats = custom_user.pathway.all()
@@ -342,6 +370,20 @@ def player(request):
             for task in custom_user.monthly_tasks.all():
                 task.completed = False
                 task.save()
+                # Update subcategory XP
+                subcategory = task.subcategory
+                subcategory.xp -= task.xp // 2
+                subcategory.save()
+
+                # Update category XP
+                category = subcategory.category
+                category.xp -= task.xp // 2
+                category.save()
+
+                # Update user's total XP
+                custom_user = CustomUser.objects.get(user=request.user)
+                custom_user.total_xp -= task.xp // 2
+                custom_user.save()
 
             # Get user's selected subcategories
             selected_subcats = custom_user.pathway.all()
@@ -416,9 +458,7 @@ def data(request):
     else:
         # Redirect to the home page or display an error message for unauthenticated users
         return redirect('home')
-    
 
-from django.db.models import F
 
 @login_required
 def complete_task(request):
@@ -433,10 +473,6 @@ def complete_task(request):
         # Mark the task as completed
         task.completed = True
         task.save()
-
-
-        categories = Category.objects.all()
-        subcategories = Subcategory.objects.all()
 
         # Update subcategory XP
         subcategory = task.subcategory

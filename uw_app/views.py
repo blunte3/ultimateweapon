@@ -278,11 +278,103 @@ def player(request):
             custom_user.daily_tasks.set(current_daily)
             custom_user.weekly_tasks.set(current_weekly)
             custom_user.monthly_tasks.set(current_monthly)
+            custom_user.last_daily_tasks_refreshed = timezone.now()
+            custom_user.daily_due_date = timezone.now() + timedelta(days=1)
+            custom_user.last_weekly_tasks_refreshed = timezone.now()
+            custom_user.weekly_due_date = timezone.now() + timedelta(days=7)
+            custom_user.last_monthly_tasks_refreshed = timezone.now()
+            custom_user.monthly_due_date = timezone.now() + timedelta(days=30)
             custom_user.save()
+
+        if timezone.now() - custom_user.last_daily_tasks_refreshed > timedelta(days=1):
+            for task in custom_user.daily_tasks.all():
+                task.completed = False
+                task.save()
+
+            # Get user's selected subcategories
+            selected_subcats = custom_user.pathway.all()
+            subcat_ids = [subcat.id for subcat in selected_subcats]
+
+            # Filter tasks to only selected subcategories
+            available_tasks = Task.objects.filter(subcategory__in=subcat_ids, 
+                                                completed=False)
+            # Shuffle and save new tasks
+            if user_difficulty == "Easy":
+                daily_tasks = available_tasks.filter(type='daily').order_by('?')[:2]
+            elif user_difficulty == "Medium":
+                daily_tasks = available_tasks.filter(type='daily').order_by('?')[:3]
+            elif user_difficulty == "Hard":
+                daily_tasks = available_tasks.filter(type='daily').order_by('?')[:4]
+            elif user_difficulty == "ULTIMATE WEAPON":
+                daily_tasks = available_tasks.filter(type='daily').order_by('?')[:5]
+
+            custom_user.daily_tasks.set(daily_tasks)
+            custom_user.last_daily_tasks_refreshed = timezone.now()
+            custom_user.daily_due_date = timezone.now() + timedelta(days=1)
+
+        if timezone.now() - custom_user.last_weekly_tasks_refreshed > timedelta(days=7):
+            for task in custom_user.weekly_tasks.all():
+                task.completed = False
+                task.save()
+
+            # Get user's selected subcategories
+            selected_subcats = custom_user.pathway.all()
+            subcat_ids = [subcat.id for subcat in selected_subcats]
+
+            # Filter tasks to only selected subcategories
+            available_tasks = Task.objects.filter(subcategory__in=subcat_ids, 
+                                                completed=False)
+            # Shuffle and save new tasks
+            if user_difficulty == "Easy":
+                weekly_tasks = available_tasks.filter(type='weekly').order_by('?')[:1]
+            elif user_difficulty == "Medium":
+                weekly_tasks = available_tasks.filter(type='weekly').order_by('?')[:2]
+            elif user_difficulty == "Hard":
+                weekly_tasks = available_tasks.filter(type='weekly').order_by('?')[:3]
+            elif user_difficulty == "ULTIMATE WEAPON":
+                weekly_tasks = available_tasks.filter(type='weekly').order_by('?')[:3]
+
+            custom_user.weekly_tasks.set(weekly_tasks)
+            custom_user.last_weekly_tasks_refreshed = timezone.now()
+            custom_user.weekly_due_date = timezone.now() + timedelta(days=7)
+
+        if timezone.now() - custom_user.last_monthly_tasks_refreshed > timedelta(days=30):
+            for task in custom_user.monthly_tasks.all():
+                task.completed = False
+                task.save()
+
+            # Get user's selected subcategories
+            selected_subcats = custom_user.pathway.all()
+            subcat_ids = [subcat.id for subcat in selected_subcats]
+
+            # Filter tasks to only selected subcategories
+            available_tasks = Task.objects.filter(subcategory__in=subcat_ids, 
+                                                completed=False)
+            # Shuffle and save new tasks
+            if user_difficulty == "Easy":
+                monthly_tasks = available_tasks.filter(type='monthly').order_by('?')[:1]
+            elif user_difficulty == "Medium":
+                monthly_tasks = available_tasks.filter(type='monthly').order_by('?')[:1]
+            elif user_difficulty == "Hard":
+                monthly_tasks = available_tasks.filter(type='monthly').order_by('?')[:1]
+            elif user_difficulty == "ULTIMATE WEAPON":
+                monthly_tasks = available_tasks.filter(type='monthly').order_by('?')[:2]
+
+            custom_user.monthly_tasks.set(monthly_tasks)
+            custom_user.last_monthly_tasks_refreshed = timezone.now()
+            custom_user.monthly_due_date = timezone.now() + timedelta(days=30)
+
+        custom_user.save()        
 
         daily_tasks = custom_user.daily_tasks.all().values_list('id', flat=True)
         weekly_tasks = custom_user.weekly_tasks.all().values_list('id', flat=True)
         monthly_tasks = custom_user.monthly_tasks.all().values_list('id', flat=True)
+        last_daily_tasks_refreshed = custom_user.last_daily_tasks_refreshed
+        last_weekly_tasks_refreshed = custom_user.last_weekly_tasks_refreshed
+        last_monthly_tasks_refreshed = custom_user.last_monthly_tasks_refreshed
+        daily_due_date = custom_user.daily_due_date
+        weekly_due_date = custom_user.weekly_due_date
+        monthly_due_date = custom_user.monthly_due_date
 
         return render(request, 'uw_app/player.html', {
             'display_name': custom_user.display_name,
@@ -294,6 +386,13 @@ def player(request):
             'weekly_tasks': weekly_tasks,
             'monthly_tasks': monthly_tasks,
             'level': custom_user.level,
+            'last_daily_refreshed': last_daily_tasks_refreshed,
+            'last_weekly_refreshed': last_weekly_tasks_refreshed,
+            'last_monthly_refreshed': last_monthly_tasks_refreshed,
+            'daily_due_date': daily_due_date,
+            'weekly_due_date': weekly_due_date,
+            'monthly_due_date': monthly_due_date,
+            'current_time': timezone.now(),
         })
     else:
         # Redirect to the home page or display an error message for unauthenticated users
@@ -358,7 +457,7 @@ def complete_task(request):
 
         # Check if all tasks in 'daily' are completed
         all_daily_tasks_completed = custom_user.daily_tasks.filter(completed=True).count() == custom_user.daily_tasks.count()
-        if all_daily_tasks_completed:
+        if all_daily_tasks_completed or timezone.now() - custom_user.last_daily_tasks_refreshed > timedelta(days=1):
             for task in custom_user.daily_tasks.all():
                 task.completed = False
                 task.save()
@@ -381,10 +480,12 @@ def complete_task(request):
                 daily_tasks = available_tasks.filter(type='daily').order_by('?')[:5]
 
             custom_user.daily_tasks.set(daily_tasks)
+            custom_user.last_daily_tasks_refreshed = timezone.now()
+            custom_user.daily_due_date = timezone.now() + timedelta(days=1)
 
         # Check if all tasks in 'weekly' are completed
         all_weekly_tasks_completed = custom_user.weekly_tasks.filter(completed=True).count() == custom_user.weekly_tasks.count()
-        if all_weekly_tasks_completed:
+        if all_weekly_tasks_completed or timezone.now() - custom_user.last_weekly_tasks_refreshed > timedelta(days=7):
             for task in custom_user.weekly_tasks.all():
                 task.completed = False
                 task.save()
@@ -407,10 +508,12 @@ def complete_task(request):
                 weekly_tasks = available_tasks.filter(type='weekly').order_by('?')[:3]
 
             custom_user.weekly_tasks.set(weekly_tasks)
+            custom_user.last_weekly_tasks_refreshed = timezone.now()
+            custom_user.weekly_due_date = timezone.now() + timedelta(days=7)
 
         # Check if all tasks in 'monthly' are completed
         all_monthly_tasks_completed = custom_user.monthly_tasks.filter(completed=True).count() == custom_user.monthly_tasks.count()
-        if all_monthly_tasks_completed:
+        if all_monthly_tasks_completed or timezone.now() - custom_user.last_monthly_tasks_refreshed > timedelta(days=30):
             for task in custom_user.monthly_tasks.all():
                 task.completed = False
                 task.save()
@@ -433,6 +536,8 @@ def complete_task(request):
                 monthly_tasks = available_tasks.filter(type='monthly').order_by('?')[:2]
 
             custom_user.monthly_tasks.set(monthly_tasks)
+            custom_user.last_monthly_tasks_refreshed = timezone.now()
+            custom_user.monthly_due_date = timezone.now() + timedelta(days=30)
 
         custom_user.save()
 

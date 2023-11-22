@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
+from datetime import timedelta
 from django.db.models import JSONField
 
 
@@ -21,7 +22,6 @@ class Task(models.Model):
     type = models.CharField(max_length=50, default="daily")
     xp = models.IntegerField(default=0)
     completed = models.BooleanField(default=False)  # Indicates whether the task is completed
-    due_date = models.DateTimeField(null=True, blank=True)  # Due date for the task
 
 
 class CustomUser(models.Model):
@@ -40,3 +40,7 @@ class CustomUser(models.Model):
     last_daily_tasks_refreshed = models.DateTimeField(default=timezone.now)
     last_weekly_tasks_refreshed = models.DateTimeField(default=timezone.now)
     last_monthly_tasks_refreshed = models.DateTimeField(default=timezone.now)
+
+    daily_due_date = models.DateTimeField(default=timezone.now)
+    weekly_due_date = models.DateTimeField(default=timezone.now)
+    monthly_due_date = models.DateTimeField(default=timezone.now)

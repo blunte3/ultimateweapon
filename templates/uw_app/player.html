@@ -160,6 +160,7 @@
             <div class="col-md-9">
                 {% if daily_tasks %}
                 <h3>Daily Tasks</h3>
+                <p>Time Remaining: {{ daily_due_date|timeuntil:current_time }}</p>
                 <div class="task-container">
                     {% for task_id in daily_tasks %}
                         {% with task=task_id|get_task_from_id %}
@@ -175,6 +176,7 @@
                 {% endif %}
                 {% if weekly_tasks %}
                     <h3>Weekly Tasks</h3>
+                    <p>Time Remaining: {{ weekly_due_date|timeuntil:current_time }}</p>
                     <div class="task-container">
                         {% for task_id in weekly_tasks %}
                             {% with task=task_id|get_task_from_id %}
@@ -190,6 +192,7 @@
                 {% endif %}
                 {% if monthly_tasks %}
                     <h3>Monthly Tasks</h3>
+                    <p>Time Remaining: {{ monthly_due_date|timeuntil:current_time }}</p>
                     <div class="task-container">
                         {% for task_id in monthly_tasks %}
                             {% with task=task_id|get_task_from_id %}

@@ -7,11 +7,13 @@ from django.db.models import JSONField
 class Category(models.Model):
     name = models.CharField(max_length=255)
     xp = models.IntegerField(default=0)
+    level = models.IntegerField(default=0)
 
 class Subcategory(models.Model):
     name = models.CharField(max_length=255)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     xp = models.IntegerField(default=0)
+    level = models.IntegerField(default=0)
 
 class Task(models.Model):
     name = models.CharField(max_length=255)

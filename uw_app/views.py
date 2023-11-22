@@ -221,8 +221,6 @@ class TaskEncoder(DjangoJSONEncoder):
 def player(request):
     print('Player view is being called.')
     if request.user.is_authenticated:
-        # Define a unique cache key for the user's tasks
-        cache_key = f'user_tasks_{request.user.id}'
         custom_user, created = CustomUser.objects.get_or_create(user=request.user)
 
         # Get the authenticated user's pathway and difficulty level
@@ -300,6 +298,25 @@ def player(request):
         # Redirect to the home page or display an error message for unauthenticated users
         return redirect('home')
 
+@login_required
+def data(request):
+    if request.user.is_authenticated:
+        custom_user, created = CustomUser.objects.get_or_create(user=request.user)
+
+        categories = Category.objects.all()
+        subcategories = Subcategory.objects.all()
+
+
+        return render(request, 'uw_app/data.html', {
+            'display_name': custom_user.display_name,
+            'categories': categories,
+            'subcategories': subcategories,
+            'total_xp': custom_user.total_xp,
+        })
+    else:
+        # Redirect to the home page or display an error message for unauthenticated users
+        return redirect('home')
+    
 
 from django.db.models import F
 
@@ -316,6 +333,10 @@ def complete_task(request):
         # Mark the task as completed
         task.completed = True
         task.save()
+
+
+        categories = Category.objects.all()
+        subcategories = Subcategory.objects.all()
 
         # Update subcategory XP
         subcategory = task.subcategory
@@ -413,6 +434,15 @@ def complete_task(request):
             custom_user.monthly_tasks.set(monthly_tasks)
 
         custom_user.save()
+
+        if subcategory.xp > 1000:
+            subcategory.xp = subcategory.xp - 1000
+            subcategory.level += 1
+            subcategory.save()
+        if category.xp > 10000:
+            category.xp = category.xp - 10000
+            category.level += 1
+            category.save()
 
         print('Complete task view completed.')
         return JsonResponse({'success': True, 'message': 'Task completed successfully.'})

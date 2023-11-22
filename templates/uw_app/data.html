@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home - UltimateWeapon</title>
+    <title>Data - UltimateWeapon</title>
     <!-- Include Bootstrap CSS (Make sure to add the correct path) -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <style>
@@ -83,16 +83,16 @@
     <nav class="navbar">
         <ul class="nav nav-tabs">
             <li class="nav-item">
-                <a class="nav-link active" href="{% url 'home' %}">Ultimate Weapon</a>
+                <a class="nav-link {% if active_tab == 'home' %}active{% endif %}" id="home-tab" data-bs-toggle="tab" href="{% url 'index' %}">Ultimate Weapon</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'player' %}">Player</a>
+                <a class="nav-link {% if active_tab == 'player' %}active{% endif %}" id="player-tab" data-bs-toggle="tab" href="{% url 'player' %}">Player</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'data' %}">Data</a>
+                <a class="nav-link {% if active_tab == 'data' %}active{% endif %}" id="data-tab" data-bs-toggle="tab" href="{% url 'data' %}">Data</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#items">Items</a>
+                <a class="nav-link {% if active_tab == 'items' %}active{% endif %}" id="items-tab" data-bs-toggle="tab" href="#items">Items</a>
             </li>
         </ul>
         <div class="signout-settings-container">
@@ -101,35 +101,57 @@
         </div>
     </nav>
 
-    <div class="container">
-        {% if user.is_authenticated %}
-        <div class="container text-center mt-5">
-            <h2 class="display-4">Welcome, {{ user.username }}!</h2>
-        </div>
-        {% else %}
-        <div class="container text-center mt-5">
-            <h2 class="display-4">Welcome! Please sign in or sign up.</h2>
-            <div class="button-container">
-                <a href="/signup" class="btn btn-primary">Sign Up</a>
-                <a href="/signin" class="btn btn-primary">Sign In</a>
+    {% load static %}
+
+    <h1 class="display-4">{{ display_name }}'s Data</h1>
+    
+    {% for category in categories %}
+    
+    <div class="card mb-3">
+    
+      <div class="card-body">
+    
+        <h4 class="card-title d-flex justify-content-between align-items-baseline">
+          <span>{{ category.name }} - Lvl {{ category.level }}</span>
+          <span>{{ category.xp }} XP</span>
+        </h4>
+    
+        {% widthratio category.xp 10000 100 as cat_percentage %}
+
+        <h5>
+          <div class="progress" style="height: 40px;">
+            <div class="progress-bar"  
+                 style="width: {{ cat_percentage }}%">{{ cat_percentage }}%
             </div>
-        </div>
-        {% endif %}
-
-        {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-            <strong>Message:</strong> {{ message }}
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
-        </div>
+          </div>  
+        </h5>
+        
+        {% for subcat in subcategories %}
+        
+          {% if subcat.category == category %}
+        
+            {% widthratio subcat.xp 1000 100 as subcat_percentage %}
+            
+            <p>
+              {{ subcat.name }} - Lvl {{ subcat.level }} - {{ subcat.xp }} XP
+              <div class="progress" style="height: 20px;">
+                <div class="progress-bar bg-success"
+                     style="width: {{ subcat_percentage }}%">{{ subcat_percentage }}%
+                </div>
+              </div>
+            </p>
+            
+          {% endif %}
+          
         {% endfor %}
+    
+        </ul>
+    
+      </div>
+    
+    </div>  
+    
+    {% endfor %}
 
-        <div class="welcome-message">Welcome to Ultimate Weapon</div>
-    </div>
-
-    <!-- Include Bootstrap JS (Make sure to add the correct path) -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
-
 </html>

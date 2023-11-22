@@ -169,13 +169,15 @@ def settings(request):
             character_image = request.POST.get('character_image')
             display_name = request.POST.get('display_name')
             difficulty = request.POST.get('difficulty')
-            pathway = request.POST.get('pathway')
+            selected_subcats = request.POST.getlist('subcategory')
+            
+            custom_user.pathway.set(selected_subcats)  
+            custom_user.save()
 
             # Update the CustomUser object with the new data
             custom_user.character_image = character_image
             custom_user.display_name = display_name
             custom_user.difficulty = difficulty
-            custom_user.pathway = pathway
             custom_user.save()
 
             return redirect('settings')  # Redirect to settings page after saving changes
@@ -185,12 +187,18 @@ def settings(request):
             display_name = custom_user.display_name
             difficulty = custom_user.difficulty
             pathway = custom_user.pathway
+            categories = Category.objects.all()
+            subcategories = Subcategory.objects.all()
+            selected_subcats = custom_user.pathway.all() 
 
         return render(request, 'uw_app/settings.html', {
             'character_image': character_image,
             'display_name': display_name,
             'difficulty': difficulty,
             'pathway': pathway,
+            'categories': categories,
+            'subcategories': subcategories,
+            'selected_subcats': selected_subcats,
         })
     else:
         return redirect('home')
@@ -218,20 +226,15 @@ def player(request):
         custom_user, created = CustomUser.objects.get_or_create(user=request.user)
 
         # Get the authenticated user's pathway and difficulty level
-        user_pathway = custom_user.pathway
+        selected_subcats = custom_user.pathway.all()
         user_difficulty = custom_user.difficulty
 
         if not custom_user.daily_tasks.exists() and not custom_user.weekly_tasks.exists() and not custom_user.monthly_tasks.exists():
-            if user_pathway == 'SCHOLAR':
-                category_names = ['Creativity', 'Intelligence', 'Knowledge']
-            elif user_pathway == 'TINKERER':
-                category_names = ['Essentials', 'Games', 'Intelligence']
-            elif user_pathway == 'CREATIVE':
-                category_names = ['Creativity', 'Knowledge', 'Games']
-            else:
-                category_names = Category.objects.values_list('name', flat=True)
+            # Get the ids of those subcategories
+            subcat_ids = [subcat.id for subcat in selected_subcats]
 
-            tasks = Task.objects.filter(subcategory__category__name__in=category_names, completed=False)
+            # Filter tasks to only those matching selected subcats 
+            tasks = Task.objects.filter(subcategory__in=subcat_ids, completed=False)
 
             # Categorize tasks based on XP points
             daily_tasks = []
@@ -287,7 +290,7 @@ def player(request):
             'display_name': custom_user.display_name,
             'character_image': custom_user.character_image,
             'difficulty': custom_user.difficulty,
-            'pathway': custom_user.pathway,
+            'selected_subcats': selected_subcats,
             'total_xp': custom_user.total_xp,
             'daily_tasks': daily_tasks,
             'weekly_tasks': weekly_tasks,
@@ -334,37 +337,52 @@ def complete_task(request):
         # Check if all tasks in 'daily' are completed
         all_daily_tasks_completed = custom_user.daily_tasks.filter(completed=True).count() == custom_user.daily_tasks.count()
         if all_daily_tasks_completed:
-            print("ALL DAILY COMPLETED")
             for task in custom_user.daily_tasks.all():
                 task.completed = False
                 task.save()
+
+            # Get user's selected subcategories
+            selected_subcats = custom_user.pathway.all()
+            subcat_ids = [subcat.id for subcat in selected_subcats]
+
+            # Filter tasks to only selected subcategories
+            available_tasks = Task.objects.filter(subcategory__in=subcat_ids, 
+                                                completed=False)
             # Shuffle and save new tasks
             if user_difficulty == "Easy":
-                daily_tasks = Task.objects.filter(type='daily', completed=False).order_by('?')[:2]
+                daily_tasks = available_tasks.filter(type='daily').order_by('?')[:2]
             elif user_difficulty == "Medium":
-                daily_tasks = Task.objects.filter(type='daily', completed=False).order_by('?')[:3]
+                daily_tasks = available_tasks.filter(type='daily').order_by('?')[:3]
             elif user_difficulty == "Hard":
-                daily_tasks = Task.objects.filter(type='daily', completed=False).order_by('?')[:4]
+                daily_tasks = available_tasks.filter(type='daily').order_by('?')[:4]
             elif user_difficulty == "ULTIMATE WEAPON":
-                daily_tasks = Task.objects.filter(type='daily', completed=False).order_by('?')[:5]
+                daily_tasks = available_tasks.filter(type='daily').order_by('?')[:5]
 
             custom_user.daily_tasks.set(daily_tasks)
-            print(daily_tasks)
+
         # Check if all tasks in 'weekly' are completed
         all_weekly_tasks_completed = custom_user.weekly_tasks.filter(completed=True).count() == custom_user.weekly_tasks.count()
         if all_weekly_tasks_completed:
             for task in custom_user.weekly_tasks.all():
                 task.completed = False
                 task.save()
+
+            # Get user's selected subcategories
+            selected_subcats = custom_user.pathway.all()
+            subcat_ids = [subcat.id for subcat in selected_subcats]
+
+            # Filter tasks to only selected subcategories
+            available_tasks = Task.objects.filter(subcategory__in=subcat_ids, 
+                                                completed=False)
             # Shuffle and save new tasks
             if user_difficulty == "Easy":
-                weekly_tasks = Task.objects.filter(type='weekly', completed=False).order_by('?')[:1]
+                weekly_tasks = available_tasks.filter(type='weekly').order_by('?')[:1]
             elif user_difficulty == "Medium":
-                weekly_tasks = Task.objects.filter(type='weekly', completed=False).order_by('?')[:2]
+                weekly_tasks = available_tasks.filter(type='weekly').order_by('?')[:2]
             elif user_difficulty == "Hard":
-                weekly_tasks = Task.objects.filter(type='weekly', completed=False).order_by('?')[:3]
+                weekly_tasks = available_tasks.filter(type='weekly').order_by('?')[:3]
             elif user_difficulty == "ULTIMATE WEAPON":
-                weekly_tasks = Task.objects.filter(type='weekly', completed=False).order_by('?')[:3]
+                weekly_tasks = available_tasks.filter(type='weekly').order_by('?')[:3]
 
             custom_user.weekly_tasks.set(weekly_tasks)
 
@@ -374,15 +392,23 @@ def complete_task(request):
             for task in custom_user.monthly_tasks.all():
                 task.completed = False
                 task.save()
+
+            # Get user's selected subcategories
+            selected_subcats = custom_user.pathway.all()
+            subcat_ids = [subcat.id for subcat in selected_subcats]
+
+            # Filter tasks to only selected subcategories
+            available_tasks = Task.objects.filter(subcategory__in=subcat_ids, 
+                                                completed=False)
             # Shuffle and save new tasks
             if user_difficulty == "Easy":
-                monthly_tasks = Task.objects.filter(type='monthly', completed=False).order_by('?')[:1]
+                monthly_tasks = available_tasks.filter(type='monthly').order_by('?')[:1]
             elif user_difficulty == "Medium":
-                monthly_tasks = Task.objects.filter(type='monthly', completed=False).order_by('?')[:1]
+                monthly_tasks = available_tasks.filter(type='monthly').order_by('?')[:1]
             elif user_difficulty == "Hard":
-                monthly_tasks = Task.objects.filter(type='monthly', completed=False).order_by('?')[:1]
+                monthly_tasks = available_tasks.filter(type='monthly').order_by('?')[:1]
             elif user_difficulty == "ULTIMATE WEAPON":
-                monthly_tasks = Task.objects.filter(type='monthly', completed=False).order_by('?')[:2]
+                monthly_tasks = available_tasks.filter(type='monthly').order_by('?')[:2]
 
             custom_user.monthly_tasks.set(monthly_tasks)
 

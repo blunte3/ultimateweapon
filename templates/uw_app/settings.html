@@ -7,7 +7,20 @@
     <title>Settings - UltimateWeapon</title>
     <!-- Include Bootstrap CSS (Make sure to add the correct path) -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function toggleCategory(categoryCheckbox) {
 
+            var categoryId = categoryCheckbox.value;
+
+            // Get all subcategory checkboxes for this category
+            var subCheckboxes = document.querySelectorAll('input[data-category="' + categoryId + '"]');
+
+            // Set checked status equal to category checkbox
+            subCheckboxes.forEach(function(item) {
+                item.checked = categoryCheckbox.checked; 
+            });
+        }
+    </script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <style>
         label {
@@ -152,15 +165,25 @@
                     <option value="ULTIMATE WEAPON" {% if difficulty == 'ULTIMATE WEAPON' %}selected{% endif %}>ULTIMATE
                         WEAPON</option>
                 </select>
-
-                <label for="pathway">Pathway:</label>
-                <select id="pathway" name="pathway" required>
-                    <option value="SCHOLAR" {% if pathway == 'SCHOLAR' %}selected{% endif %}>SCHOLAR</option>
-                    <option value="TINKERER" {% if pathway == 'TINKERER' %}selected{% endif %}>TINKERER</option>
-                    <option value="CREATIVE" {% if pathway == 'CREATIVE' %}selected{% endif %}>CREATIVE</option>
-                    <option value="ULTIMATE WEAPON" {% if pathway == 'ULTIMATE WEAPON' %}selected{% endif %}>ULTIMATE
-                        WEAPON</option>
-                </select>
+                
+                <ul>
+                    {% for category in categories %}
+                    <li>
+                        <input type="checkbox" value="{{ category.id }}" onclick="toggleCategory(this)">{{ category.name }}
+                      <ul>
+                        {% for subcategory in subcategories %}
+                          {% if subcategory.category == category %}
+                            <li>
+                                <input type="checkbox" 
+                                {% if subcategory in selected_subcats %}checked{% endif %}
+                                name="subcategory" value="{{ subcategory.id }}" data-category="{{ subcategory.category.id }}"> {{ subcategory.name }} 
+                            </li>
+                          {% endif %}
+                        {% endfor %}
+                      </ul>
+                    </li>  
+                    {% endfor %}
+                  </ul>
 
                 <button type="submit">Save Changes</button>
             </form>

@@ -11,15 +11,34 @@
         function toggleCategory(categoryCheckbox) {
             var categoryId = categoryCheckbox.value;
     
-            // Get all subcategory and subsubcategory checkboxes for this category
-            var checkboxes = document.querySelectorAll('input[data-category="' + categoryId + '"], input[data-subcategory="' + categoryId + '"]');
+            // Get all subcategory checkboxes for this category
+            var subcategoryCheckboxes = document.querySelectorAll('input[data-category="' + categoryId + '"]');
     
             // Set checked status equal to category checkbox
-            checkboxes.forEach(function(item) {
-                item.checked = categoryCheckbox.checked;
+            subcategoryCheckboxes.forEach(function(subcategoryCheckbox) {
+                subcategoryCheckbox.checked = categoryCheckbox.checked;
+    
+                // Call toggleSubcategory function to handle subsubcategories
+                toggleSubcategory(subcategoryCheckbox);
+            });
+        }
+    
+        function toggleSubcategory(subcategoryCheckbox) {
+            var subcategoryId = subcategoryCheckbox.value;
+    
+            // Get all subsubcategory checkboxes for this subcategory
+            var subsubCheckboxes = document.querySelectorAll('input[data-subcategory="' + subcategoryId + '"]');
+    
+            // Check or uncheck all subsubcategories for this subcategory
+            subsubCheckboxes.forEach(function(subsubCheckbox) {
+                subsubCheckbox.checked = subcategoryCheckbox.checked;
             });
         }
     </script>
+    
+    
+    
+    
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <style>
         label {
@@ -176,7 +195,7 @@
                             <li>
                               <input type="checkbox" 
                                 {% if subcategory in selected_subcats %}checked{% endif %}
-                                name="subcategory" value="{{ subcategory.id }}" data-category="{{ subcategory.category.id }}"> {{ subcategory.name }}
+                                name="subcategory" value="{{ subcategory.id }}" onclick="toggleSubcategory(this)" data-category="{{ subcategory.category.id }}"> {{ subcategory.name }}
                               <ul>
                                 {% for subsubcat in subsubcategories %}
                                   {% if subsubcat.subcategory == subcategory %}

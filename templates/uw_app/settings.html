@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - UltimateWeapon</title>
+    <!-- Include Bootstrap CSS (Make sure to add the correct path) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function toggleCategory(categoryCheckbox) {
+            var categoryId = categoryCheckbox.value;
+    
+            // Get all subcategory checkboxes for this category
+            var subcategoryCheckboxes = document.querySelectorAll('input[data-category="' + categoryId + '"]');
+    
+            // Set checked status equal to category checkbox
+            subcategoryCheckboxes.forEach(function(subcategoryCheckbox) {
+                subcategoryCheckbox.checked = categoryCheckbox.checked;
+    
+                // Call toggleSubcategory function to handle subsubcategories
+                toggleSubcategory(subcategoryCheckbox);
+            });
+        }
+    
+        function toggleSubcategory(subcategoryCheckbox) {
+            var subcategoryId = subcategoryCheckbox.value;
+    
+            // Get all subsubcategory checkboxes for this subcategory
+            var subsubCheckboxes = document.querySelectorAll('input[data-subcategory="' + subcategoryId + '"]');
+    
+            // Check or uncheck all subsubcategories for this subcategory
+            subsubCheckboxes.forEach(function(subsubCheckbox) {
+                subsubCheckbox.checked = subcategoryCheckbox.checked;
+            });
+        }
+    </script>
+    
+    
+    
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        label {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        button[type="submit"] {
+            width: 100%;
+            background-color: #007bff;
+            color: #fff;
+            padding: 14px 20px;
+            margin-top: 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: black;
+            color: white;
+            padding: 0;
+            margin: 0;
+        }
+
+        .navbar {
+            background-color: #000000;
+            padding: 10px;
+            border-bottom: 1px solid #ffffff;
+        }
+
+        .container {
+            padding: 20px;
+            box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.1);
+            margin-top: 10px;
+        }
+
+        .alert {
+            margin-bottom: 20px;
+        }
+
+        .welcome-message {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .button-container {
+            margin-top: 20px;
+        }
+
+        .btn {
+            margin: 5px;
+            font-weight: bold;
+            text-decoration: none;
+            color: #ffffff;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #0056b3;
+        }
+
+        /* Custom styles for the tab system */
+        .nav-tabs .nav-link {
+            color: #ffffff;
+            border: 1px solid #007bff;
+            border-radius: 0;
+        }
+
+        .nav-tabs .nav-link.active {
+            background-color: #007bff;
+            color: #ffffff;
+            border: 1px solid #007bff;
+            border-bottom-color: transparent;
+        }
+
+        .nav-tabs .nav-link:hover {
+            background-color: #0056b3;
+            border: 1px solid #0056b3;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <ul class="nav nav-tabs">
+            <li class="nav-item">
+                <a class="nav-link {% if active_tab == 'home' %}active{% endif %}" href="{% url 'index' %}">Ultimate Weapon</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if active_tab == 'player' %}active{% endif %}" href="{% url 'player' %}">Player</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if active_tab == 'data' %}active{% endif %}" href="{% url 'data' %}">Data</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if active_tab == 'items' %}active{% endif %}" href="#items">Items</a>
+            </li>
+        </ul>
+        <div class="signout-settings-container">
+            <a href="/signout" class="btn btn-primary">Sign Out</a>
+            <a href="{% url 'settings' %}" class="btn btn-primary">Settings</a>
+        </div>
+    </nav>
+    <div class="container">
+        <h2>Settings</h2>
+        {% if user.is_authenticated %}
+        <div class="container">
+            <form method="post" action="{% url 'settings' %}">
+                {% csrf_token %}
+                <label for="character_image">Character Image URL:</label>
+                <input type="text" id="character_image" name="character_image" value="{{ character_image }}" required>
+
+                <label for="display_name">Display Name:</label>
+                <input type="text" id="display_name" name="display_name" value="{{ display_name }}" required>
+
+                <label for="difficulty">Difficulty:</label>
+                <select id="difficulty" name="difficulty" required>
+                    <option value="Easy" {% if difficulty == 'Easy' %}selected{% endif %}>Easy</option>
+                    <option value="Medium" {% if difficulty == 'Medium' %}selected{% endif %}>Medium</option>
+                    <option value="Hard" {% if difficulty == 'Hard' %}selected{% endif %}>Hard</option>
+                    <option value="ULTIMATE WEAPON" {% if difficulty == 'ULTIMATE WEAPON' %}selected{% endif %}>ULTIMATE
+                        WEAPON</option>
+                </select>
+                
+                <ul>
+                    {% for category in categories %}
+                    <li>
+                      <input type="checkbox" value="{{ category.id }}" onclick="toggleCategory(this)">{{ category.name }}
+                      <ul>
+                        {% for subcategory in subcategories %}
+                          {% if subcategory.category == category %}
+                            <li>
+                              <input type="checkbox" 
+                                {% if subcategory in selected_subcats %}checked{% endif %}
+                                name="subcategory" value="{{ subcategory.id }}" onclick="toggleSubcategory(this)" data-category="{{ subcategory.category.id }}"> {{ subcategory.name }}
+                              <ul>
+                                {% for subsubcat in subsubcategories %}
+                                  {% if subsubcat.subcategory == subcategory %}
+                                    <li>
+                                      <input type="checkbox"
+                                        {% if subsubcat in selected_subsubcats %}checked{% endif %}
+                                        name="subsubcategory" value="{{ subsubcat.id }}" data-subcategory="{{ subsubcat.subcategory.id }}"> {{ subsubcat.name }}
+                                    </li>
+                                  {% endif %}
+                                {% endfor %}
+                              </ul>
+                            </li>
+                          {% endif %}
+                        {% endfor %}
+                      </ul>
+                    </li>
+                  {% endfor %}
+                  
+                  </ul>
+
+                <button type="submit">Save Changes</button>
+            </form>
+        </div>
+        {% else %}
+        <div class="container text-center mt-5">
+            <h2>You need to be signed in to access settings.</h2>
+            <a href="{% url 'signin' %}" class="btn btn-primary mt-3">Sign In</a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Include Bootstrap JS (Make sure to add the correct path) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

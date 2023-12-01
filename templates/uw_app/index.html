@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - UltimateWeapon</title>
+    <!-- Include Bootstrap CSS (Make sure to add the correct path) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: black;
+            color: white;
+            padding: 0;
+            margin: 0;
+        }
+
+        .navbar {
+            background-color: #000000;
+            padding: 10px;
+            border-bottom: 1px solid #ffffff;
+        }
+
+        .container {
+            padding: 20px;
+            box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.1);
+            margin-top: 10px;
+        }
+
+        .alert {
+            margin-bottom: 20px;
+        }
+
+        .welcome-message {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .button-container {
+            margin-top: 20px;
+        }
+
+        .btn {
+            margin: 5px;
+            font-weight: bold;
+            text-decoration: none;
+            color: #ffffff;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #0056b3;
+        }
+
+        /* Custom styles for the tab system */
+        .nav-tabs .nav-link {
+            color: #ffffff;
+            border: 1px solid #007bff;
+            border-radius: 0;
+        }
+
+        .nav-tabs .nav-link.active {
+            background-color: #007bff;
+            color: #ffffff;
+            border: 1px solid #007bff;
+            border-bottom-color: transparent;
+        }
+
+        .nav-tabs .nav-link:hover {
+            background-color: #0056b3;
+            border: 1px solid #0056b3;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <ul class="nav nav-tabs">
+            <li class="nav-item">
+                <a class="nav-link active" href="{% url 'home' %}">Ultimate Weapon</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'player' %}">Player</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'data' %}">Data</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#items">Items</a>
+            </li>
+        </ul>
+        <div class="signout-settings-container">
+            <a href="/signout" class="btn btn-primary">Sign Out</a>
+            <a href="{% url 'settings' %}" class="btn btn-primary">Settings</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        {% if user.is_authenticated %}
+        <div class="container text-center mt-5">
+            <h2 class="display-4">Welcome, {{ user.username }}!</h2>
+        </div>
+        {% else %}
+        <div class="container text-center mt-5">
+            <h2 class="display-4">Welcome! Please sign in or sign up.</h2>
+            <div class="button-container">
+                <a href="/signup" class="btn btn-primary">Sign Up</a>
+                <a href="/signin" class="btn btn-primary">Sign In</a>
+            </div>
+        </div>
+        {% endif %}
+
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            <strong>Message:</strong> {{ message }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        {% endfor %}
+
+        <div class="welcome-message">Welcome to Ultimate Weapon</div>
+    </div>
+
+    <!-- Include Bootstrap JS (Make sure to add the correct path) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

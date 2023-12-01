@@ -9,6 +9,13 @@ class Command(BaseCommand):
         categories = ['Creativity', 'Intelligence', 'Essentials', 'Knowledge', 'Games', 'Secret Agent', 'Brain']
         
         for category_name in categories:
-            Category.objects.create(name=category_name)
+            # Check if the Category already exists
+            existing_category, created = Category.objects.get_or_create(
+                name=category_name
+            )
 
-        self.stdout.write(self.style.SUCCESS('Categories created successfully'))
+            # You can update or add on to the existing object if it already exists
+            if not created:
+                existing_category.save()
+
+        self.stdout.write(self.style.SUCCESS('Categories processed successfully'))

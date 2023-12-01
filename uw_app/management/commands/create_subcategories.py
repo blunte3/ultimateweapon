@@ -11,8 +11,8 @@ class Command(BaseCommand):
         subcategories_per_category = {
             'Creativity': ['Instruments', 'Art', 'Writing', 'Digital', 'Voice'],
             'Intelligence': ['Musical-Rhythmic', 'Visual-Spatial', 'Linguistic-Verbal', 'Logical-Mathematical', 'Bodily-Kinesthetic', 'Interpersonal', 'Intrapersonal', 'Existential', 'Naturalist'],
-            'Essentials': ['Kitchen', 'Cleaning', 'Handy-Man', 'Fighting', 'Survival'],
-            'Knowledge': ['History', 'Science', 'Random', 'Philosophy'],
+            'Essentials': ['Kitchen', 'Cleaning', 'Handy-Man', 'Money', 'Fighting', 'Survival'],
+            'Knowledge': ['History', 'Science', 'Technology', 'Random', 'Philosophy'],
             'Games': ['Video', 'Barbecue', 'Board', 'Sports'],
             'Secret Agent': ['Security / Hacking', 'Reconnaissance', 'Parkour'],
             'Brain': ['Cognitive Function', 'Emotional Function','Motor Function'],
@@ -23,6 +23,14 @@ class Command(BaseCommand):
             subcategories = subcategories_per_category.get(category.name, [])
 
             for subcategory_name in subcategories:
-                Subcategory.objects.create(name=subcategory_name, category=category)
+                # Check if the Subcategory already exists
+                existing_subcategory, created = Subcategory.objects.get_or_create(
+                    name=subcategory_name,
+                    category=category
+                )
 
-            self.stdout.write(self.style.SUCCESS(f'Subcategories created successfully for {category.name}'))
+                # You can update or add on to the existing object if it already exists
+                if not created:
+                    existing_subcategory.save()
+
+            self.stdout.write(self.style.SUCCESS(f'Subcategories processed successfully for {category.name}'))

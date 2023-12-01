@@ -54,6 +54,14 @@ class Command(BaseCommand):
                 subsubcategories = subsubcategories_per_subcategory.get(subcategory.name, [])
 
                 for subsubcategory_name in subsubcategories:
-                    Subsubcategory.objects.create(name=subsubcategory_name, subcategory=subcategory)
+                    # Check if the Subsubcategory already exists
+                    existing_subsubcategory, created = Subsubcategory.objects.get_or_create(
+                        name=subsubcategory_name,
+                        subcategory=subcategory
+                    )
 
-                self.stdout.write(self.style.SUCCESS(f'Subsubcategories created successfully for {subcategory.name}'))
+                    if not created:
+                        existing_subsubcategory.save()
+
+                    # You can also print a message if needed
+                    self.stdout.write(self.style.SUCCESS(f'Subsubcategory {existing_subsubcategory.name} processed.'))

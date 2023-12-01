@@ -3,7 +3,7 @@ from django.core.cache import cache
 from django.http import HttpResponse, HttpRequest
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
-from uw_app.models import CustomUser, Task, Subsubcategory, Subcategory, Category
+from uw_app.models import CustomUser, Task, Subsubcategory, Subcategory, Category, Reminder
 from django.contrib import messages
 from django.contrib.auth import login, authenticate, logout
 from uw_project import settings
@@ -471,6 +471,11 @@ def player(request):
         weekly_due_date = custom_user.weekly_due_date
         monthly_due_date = custom_user.monthly_due_date
 
+        reminders = list(Reminder.objects.all())
+        shuffle(reminders)
+        single_reminder = reminders[:1]
+
+
         return render(request, 'uw_app/player.html', {
             'display_name': custom_user.display_name,
             'character_image': custom_user.character_image,
@@ -488,6 +493,7 @@ def player(request):
             'weekly_due_date': weekly_due_date,
             'monthly_due_date': monthly_due_date,
             'current_time': timezone.now(),
+            'single_reminder': single_reminder,
         })
     else:
         # Redirect to the home page or display an error message for unauthenticated users

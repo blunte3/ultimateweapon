@@ -4,6 +4,9 @@ from django.utils import timezone
 from datetime import timedelta
 from django.db.models import JSONField
 
+class Reminder(models.Model):
+    reminder = models.CharField(max_length=1000)
+
 
 class Category(models.Model):
     name = models.CharField(max_length=255)

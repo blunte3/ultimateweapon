@@ -1407,10 +1407,21 @@ class Command(BaseCommand):
 ('Participate in a coordination-focused workshop or seminar for advanced techniques', 25, 'monthly'),
 ('Create and follow a monthly coordination training plan with progressive difficulty', 20, 'monthly')],
         }
+
         for subsubcategory in subsubcategories:
             tasks = tasks_per_subsubcategory.get(subsubcategory.name, [])
 
-            for task_name, xp, type in tasks:
-                Task.objects.create(name=task_name, subsubcategory=subsubcategory, xp=xp, type=type)
+            for task_name, xp, task_type in tasks:
+                # Check if the Task already exists
+                existing_task, created = Task.objects.get_or_create(
+                    name=task_name,
+                    subsubcategory=subsubcategory,
+                    xp=xp,
+                    type=task_type
+                )
 
-            self.stdout.write(self.style.SUCCESS(f'Tasks created successfully for {subsubcategory.name}'))
+                # You can update or add on to the existing object if it already exists
+                if not created:
+                    existing_task.save()
+
+            self.stdout.write(self.style.SUCCESS(f'Tasks processed successfully for {subsubcategory.name}'))

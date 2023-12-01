@@ -122,6 +122,23 @@
             background-color: #0056b3;
             border: 1px solid #0056b3;
         }
+
+        .reminder-container {
+            margin-top: 10px; 
+            align-self: center;  
+            background-color: #343a40;  
+            padding: 10px;
+            border: 1px solid #007bff; 
+            border-radius: 5px;
+            text-align: center;
+            width: 80%;
+        }
+        
+        .reminder-text {
+            margin: 0;
+            font-size: 16px;
+            color: #ffffff;  
+        }
     </style>
 </head>
 
@@ -156,7 +173,10 @@
                 <p>Lvl: {{ level }}
                 Total XP: {{ total_xp }}</p>
             </div>
-    
+            <!-- Display Reminder at the Bottom of User Info -->
+            <div class="reminder-container">
+                <p class="reminder-text">Reminder: {{ single_reminder.0.reminder }}</p>
+            </div>
             <!-- Right side: Tasks -->
             <div class="col-md-9">
                 {% if daily_tasks %}
@@ -166,9 +186,10 @@
                     {% for task_id in daily_tasks %}
                         {% with task=task_id|get_task_from_id %}
                             {% if not task.completed %}
+                            {{ task.subsubcategory.name }}
                                 <div data-task-id="{{ task.id }}" class="task">
                                     <input type="checkbox" class="task-checkbox" data-task-id="{{ task.id }}" data-category="Short">
-                                    {{ task.name }} XP: {{ task.xp }} Type: {{ task.subsubcategory.name }}
+                                    {{ task.name }} XP: {{ task.xp }} 
                                 </div>
                             {% endif %}
                         {% endwith %}
@@ -182,9 +203,10 @@
                         {% for task_id in weekly_tasks %}
                             {% with task=task_id|get_task_from_id %}
                                 {% if not task.completed %}
+                                {{ task.subsubcategory.name }}
                                 <div data-task-id="{{ task.id }}" class="task">
                                     <input type="checkbox" class="task-checkbox" data-task-id="{{ task.id }}" data-category="Short">
-                                    {{ task.name }} XP: {{ task.xp }} Type: {{ task.subsubcategory.name }}
+                                    {{ task.name }} XP: {{ task.xp }}
                                 </div>
                                 {% endif %}
                             {% endwith %}
@@ -198,9 +220,10 @@
                         {% for task_id in monthly_tasks %}
                             {% with task=task_id|get_task_from_id %}
                                 {% if not task.completed %}
+                                {{ task.subsubcategory.name }}
                                 <div data-task-id="{{ task.id }}" class="task">
                                     <input type="checkbox" class="task-checkbox" data-task-id="{{ task.id }}" data-category="Short">
-                                    {{ task.name }} XP: {{ task.xp }} Type: {{ task.subsubcategory.name }}
+                                    {{ task.name }} XP: {{ task.xp }} 
                                 </div>
                                 {% endif %}
                             {% endwith %}

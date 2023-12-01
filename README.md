@@ -12,9 +12,9 @@ Ultimate Weapon is not just another productivity tool; it's a dynamic and engagi
 
 Embark on a quest to conquer various life tasks, each representing a unique skill or area of knowledge. Earn experience points (XP) and level up as you successfully complete tasks, unlocking new challenges and achievements.
 
-### 2. Skill Trees and Specializations
+### 2. Progress Bars and Specializations
 
-Dive into skill trees that represent different categories such as professional skills, personal development, fitness, creativity, and more. Choose your path wisely, specializing in areas that align with your personal goals.
+Dive into progress bars that represent different categories such as professional skills, personal development, fitness, creativity, and more. Choose your path wisely, specializing in areas that align with your personal goals.
 
 ### 3. Collaborative Challenges
 
@@ -41,7 +41,33 @@ git clone https://github.com/your-username/ultimate-weapon.git
 ```
 
 ## Set Up Your Environment
-Follow the comprehensive documentation to set up the Ultimate Weapon platform on your local machine.
+Using a venv is recommended but is not necessary.
+
+Install necessary dependencies:
+```bash
+pip install Django
+pip install psycopg2
+```
+To generate all categories, tasks, and reminders, run in order:
+```bash
+python manage.py create_categories
+python manage.py create_subcategories
+python manage.py create_subsubcategories
+python manage.py create_tasks
+python manage.py create_reminders
+```
+If you change any of the data in these files for additions re-run the commands depending on what you changed in order for them to update.
+
+Finally run the website using:
+```bash
+python manage.py runserver
+```
+
+Additionally, if there are any changes to the models file. The changes will not showup until you run:
+```bash
+python manage.py makemigrations uw_app
+python manage.py migrate uw_app
+```
 
 ## Create Your Avatar
 Customize your virtual avatar and begin your journey to mastering every skill in the game of life.

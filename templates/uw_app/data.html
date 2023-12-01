@@ -112,52 +112,48 @@
     <h1 class="display-4">{{ display_name }}'s Data</h1>
     
     {% for category in categories %}
-    
     <div class="card mb-3">
-    
       <div class="card-body">
-    
         <h4 class="card-title d-flex justify-content-between align-items-baseline">
           <span>{{ category.name }} - Lvl {{ category.level }}</span>
           <span>{{ category.xp }} XP</span>
         </h4>
-    
-        {% widthratio category.xp 10000 100 as cat_percentage %}
-
+        {% widthratio category.xp 100000 100 as cat_percentage %}
         <h5>
-          <div class="progress" style="height: 40px;">
-            <div class="progress-bar"  
-                 style="width: {{ cat_percentage }}%">{{ cat_percentage }}%
-            </div>
-          </div>  
+          <div class="progress" style="height: 50px;">
+            <div class="progress-bar" style="width: {{ cat_percentage }}%">{{ cat_percentage }}%</div>
+          </div>
         </h5>
         
         {% for subcat in subcategories %}
-        
           {% if subcat.category == category %}
-        
-            {% widthratio subcat.xp 1000 100 as subcat_percentage %}
-            
+            {% widthratio subcat.xp 10000 100 as subcat_percentage %}
             <p>
               {{ subcat.name }} - Lvl {{ subcat.level }} - {{ subcat.xp }} XP
-              <div class="progress" style="height: 20px;">
-                <div class="progress-bar bg-success"
-                     style="width: {{ subcat_percentage }}%">{{ subcat_percentage }}%
-                </div>
+              <div class="progress" style="height: 30px;">
+                <div class="progress-bar bg-success" style="width: {{ subcat_percentage }}%">{{ subcat_percentage }}%</div>
               </div>
+              
+              {% for subsubcat in subsubcategories %}
+                {% if subsubcat.subcategory == subcat %}
+                  {% widthratio subsubcat.xp 1000 100 as subsubcat_percentage %}
+                  <p>
+                    {{ subsubcat.name }} - Lvl {{ subsubcat.level }} - {{ subsubcat.xp }} XP
+                    <div class="progress" style="height: 10px;">
+                      <div class="progress-bar bg-info" style="width: {{ subsubcat_percentage }}%">{{ subsubcat_percentage }}%</div>
+                    </div>
+                  </p>
+                {% endif %}
+              {% endfor %}
+              
             </p>
-            
           {% endif %}
-          
         {% endfor %}
-    
-        </ul>
-    
+        
       </div>
-    
     </div>  
-    
-    {% endfor %}
+  {% endfor %}
+  
 
 </body>
 </html>

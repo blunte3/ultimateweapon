@@ -16,9 +16,15 @@ class Subcategory(models.Model):
     xp = models.IntegerField(default=0)
     level = models.IntegerField(default=0)
 
-class Task(models.Model):
+class Subsubcategory(models.Model):
     name = models.CharField(max_length=255)
     subcategory = models.ForeignKey(Subcategory, on_delete=models.CASCADE)
+    xp = models.IntegerField(default=0)
+    level = models.IntegerField(default=0)
+
+class Task(models.Model):
+    name = models.CharField(max_length=255)
+    subsubcategory = models.ForeignKey(Subsubcategory, on_delete=models.CASCADE, default="")
     type = models.CharField(max_length=50, default="daily")
     xp = models.IntegerField(default=0)
     completed = models.BooleanField(default=False)  # Indicates whether the task is completed
@@ -28,7 +34,7 @@ class CustomUser(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     character_image = models.CharField(max_length=255, default="../images/jainar.jpg")
     display_name = models.CharField(max_length=255, default="Default Name")
-    pathway = models.ManyToManyField(Subcategory, related_name='pathway', blank=True)
+    pathway = models.ManyToManyField(Subsubcategory, related_name='pathway', blank=True)
     difficulty = models.CharField(max_length=20, choices=[("Easy", "Easy"), ("Medium", "Medium"), ("Hard", "Hard"), ("ULTIMATE WEAPON", "ULTIMATE WEAPON")], default="Easy")    
     total_xp = models.IntegerField(default=0)
     level = models.IntegerField(default=0)

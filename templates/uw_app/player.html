@@ -168,7 +168,7 @@
                             {% if not task.completed %}
                                 <div data-task-id="{{ task.id }}" class="task">
                                     <input type="checkbox" class="task-checkbox" data-task-id="{{ task.id }}" data-category="Short">
-                                    {{ task.name }} XP: {{ task.xp }}
+                                    {{ task.name }} XP: {{ task.xp }} Type: {{ task.subsubcategory.name }}
                                 </div>
                             {% endif %}
                         {% endwith %}

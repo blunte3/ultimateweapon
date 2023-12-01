@@ -3,7 +3,7 @@ from django.core.cache import cache
 from django.http import HttpResponse, HttpRequest
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
-from uw_app.models import CustomUser, Task, Subcategory, Category
+from uw_app.models import CustomUser, Task, Subsubcategory, Subcategory, Category
 from django.contrib import messages
 from django.contrib.auth import login, authenticate, logout
 from uw_project import settings
@@ -169,9 +169,9 @@ def settings(request):
             character_image = request.POST.get('character_image')
             display_name = request.POST.get('display_name')
             difficulty = request.POST.get('difficulty')
-            selected_subcats = request.POST.getlist('subcategory')
+            selected_subsubcats = request.POST.getlist('subsubcategory')
             
-            custom_user.pathway.set(selected_subcats)  
+            custom_user.pathway.set(selected_subsubcats)  
             custom_user.save()
 
             # Update the CustomUser object with the new data
@@ -189,7 +189,8 @@ def settings(request):
             pathway = custom_user.pathway
             categories = Category.objects.all()
             subcategories = Subcategory.objects.all()
-            selected_subcats = custom_user.pathway.all() 
+            subsubcategories = Subsubcategory.objects.all()
+            selected_subsubcats = custom_user.pathway.all() 
 
         return render(request, 'uw_app/settings.html', {
             'character_image': character_image,
@@ -198,7 +199,8 @@ def settings(request):
             'pathway': pathway,
             'categories': categories,
             'subcategories': subcategories,
-            'selected_subcats': selected_subcats,
+            'subsubcategories': subsubcategories,
+            'selected_subsubcats': selected_subsubcats,
         })
     else:
         return redirect('home')
@@ -212,7 +214,7 @@ class TaskEncoder(DjangoJSONEncoder):
                 'name': obj.name,
                 'xp': obj.xp,
                 'completed': obj.completed,
-                'subcategory': obj.subcategory.id,  # Assuming you want to include the subcategory ID
+                'subsubcategory': obj.subsubcategory.id,  # Assuming you want to include the subcategory ID
                 # Include other fields as needed
             }
         return super().default(obj)
@@ -224,15 +226,15 @@ def player(request):
         custom_user, created = CustomUser.objects.get_or_create(user=request.user)
 
         # Get the authenticated user's pathway and difficulty level
-        selected_subcats = custom_user.pathway.all()
+        selected_subsubcats = custom_user.pathway.all()
         user_difficulty = custom_user.difficulty
 
         if not custom_user.daily_tasks.exists() and not custom_user.weekly_tasks.exists() and not custom_user.monthly_tasks.exists():
             # Get the ids of those subcategories
-            subcat_ids = [subcat.id for subcat in selected_subcats]
+            subsubcat_ids = [subsubcat.id for subsubcat in selected_subsubcats]
 
             # Filter tasks to only those matching selected subcats 
-            tasks = Task.objects.filter(subcategory__in=subcat_ids, completed=False)
+            tasks = Task.objects.filter(subsubcategory__in=subsubcat_ids, completed=False)
 
             # Categorize tasks based on XP points
             daily_tasks = []
@@ -291,26 +293,43 @@ def player(request):
                 task.completed = False
                 task.save()
                 # Update subcategory XP
-                subcategory = task.subcategory
-                subcategory.xp -= task.xp // 2
+                subsubcategory = task.subsubcategory
+                if subsubcategory.xp - task.xp // 2 >= 0:
+                    subsubcategory.xp -= task.xp // 2
+                else:
+                    subsubcategory.xp = 0
+                subsubcategory.save()
+
+                # Update subcategory XP
+                subcategory = subsubcategory.subcategory
+                if subcategory.xp - task.xp // 2 >= 0:
+                    subcategory.xp -= task.xp // 2
+                else:
+                    subcategory.xp = 0
                 subcategory.save()
 
                 # Update category XP
                 category = subcategory.category
-                category.xp -= task.xp // 2
+                if category.xp - task.xp // 2 >= 0:
+                    category.xp -= task.xp // 2
+                else:
+                    category.xp = 0
                 category.save()
 
                 # Update user's total XP
                 custom_user = CustomUser.objects.get(user=request.user)
-                custom_user.total_xp -= task.xp // 2
+                if custom_user.total_xp - task.xp // 2 >= 0:
+                    custom_user.total_xp -= task.xp // 2
+                else:
+                    custom_user.total_xp = 0
                 custom_user.save()
 
             # Get user's selected subcategories
-            selected_subcats = custom_user.pathway.all()
-            subcat_ids = [subcat.id for subcat in selected_subcats]
+            selected_subsubcats = custom_user.pathway.all()
+            subsubcat_ids = [subsubcat.id for subsubcat in selected_subsubcats]
 
             # Filter tasks to only selected subcategories
-            available_tasks = Task.objects.filter(subcategory__in=subcat_ids, 
+            available_tasks = Task.objects.filter(subsubcategory__in=subsubcat_ids, 
                                                 completed=False)
             # Shuffle and save new tasks
             if user_difficulty == "Easy":
@@ -331,26 +350,43 @@ def player(request):
                 task.completed = False
                 task.save()
                 # Update subcategory XP
-                subcategory = task.subcategory
-                subcategory.xp -= task.xp // 2
+                subsubcategory = task.subsubcategory
+                if subsubcategory.xp - task.xp // 2 >= 0:
+                    subsubcategory.xp -= task.xp // 2
+                else:
+                    subsubcategory.xp = 0
+                subsubcategory.save()
+
+                # Update subcategory XP
+                subcategory = subsubcategory.subcategory
+                if subcategory.xp - task.xp // 2 >= 0:
+                    subcategory.xp -= task.xp // 2
+                else:
+                    subcategory.xp = 0
                 subcategory.save()
 
                 # Update category XP
                 category = subcategory.category
-                category.xp -= task.xp // 2
+                if category.xp - task.xp // 2 >= 0:
+                    category.xp -= task.xp // 2
+                else:
+                    category.xp = 0
                 category.save()
 
                 # Update user's total XP
                 custom_user = CustomUser.objects.get(user=request.user)
-                custom_user.total_xp -= task.xp // 2
+                if custom_user.total_xp - task.xp // 2 >= 0:
+                    custom_user.total_xp -= task.xp // 2
+                else:
+                    custom_user.total_xp = 0
                 custom_user.save()
 
             # Get user's selected subcategories
-            selected_subcats = custom_user.pathway.all()
-            subcat_ids = [subcat.id for subcat in selected_subcats]
+            selected_subsubcats = custom_user.pathway.all()
+            subsubcat_ids = [subsubcat.id for subsubcat in selected_subsubcats]
 
             # Filter tasks to only selected subcategories
-            available_tasks = Task.objects.filter(subcategory__in=subcat_ids, 
+            available_tasks = Task.objects.filter(subsubcategory__in=subsubcat_ids, 
                                                 completed=False)
             # Shuffle and save new tasks
             if user_difficulty == "Easy":
@@ -371,26 +407,43 @@ def player(request):
                 task.completed = False
                 task.save()
                 # Update subcategory XP
-                subcategory = task.subcategory
-                subcategory.xp -= task.xp // 2
+                subsubcategory = task.subsubcategory
+                if subsubcategory.xp - task.xp // 2 >= 0:
+                    subsubcategory.xp -= task.xp // 2
+                else:
+                    subsubcategory.xp = 0
+                subsubcategory.save()
+
+                # Update subcategory XP
+                subcategory = subsubcategory.subcategory
+                if subcategory.xp - task.xp // 2 >= 0:
+                    subcategory.xp -= task.xp // 2
+                else:
+                    subcategory.xp = 0
                 subcategory.save()
 
                 # Update category XP
                 category = subcategory.category
-                category.xp -= task.xp // 2
+                if category.xp - task.xp // 2 >= 0:
+                    category.xp -= task.xp // 2
+                else:
+                    category.xp = 0
                 category.save()
 
                 # Update user's total XP
                 custom_user = CustomUser.objects.get(user=request.user)
-                custom_user.total_xp -= task.xp // 2
+                if custom_user.total_xp - task.xp // 2 >= 0:
+                    custom_user.total_xp -= task.xp // 2
+                else:
+                    custom_user.total_xp = 0
                 custom_user.save()
 
             # Get user's selected subcategories
-            selected_subcats = custom_user.pathway.all()
-            subcat_ids = [subcat.id for subcat in selected_subcats]
+            selected_subsubcats = custom_user.pathway.all()
+            subsubcat_ids = [subsubcat.id for subsubcat in selected_subsubcats]
 
             # Filter tasks to only selected subcategories
-            available_tasks = Task.objects.filter(subcategory__in=subcat_ids, 
+            available_tasks = Task.objects.filter(subsubcategory__in=subsubcat_ids, 
                                                 completed=False)
             # Shuffle and save new tasks
             if user_difficulty == "Easy":
@@ -422,7 +475,7 @@ def player(request):
             'display_name': custom_user.display_name,
             'character_image': custom_user.character_image,
             'difficulty': custom_user.difficulty,
-            'selected_subcats': selected_subcats,
+            'selected_subsubcats': selected_subsubcats,
             'total_xp': custom_user.total_xp,
             'daily_tasks': daily_tasks,
             'weekly_tasks': weekly_tasks,
@@ -447,12 +500,14 @@ def data(request):
 
         categories = Category.objects.all()
         subcategories = Subcategory.objects.all()
+        subsubcategories = Subsubcategory.objects.all()
 
 
         return render(request, 'uw_app/data.html', {
             'display_name': custom_user.display_name,
             'categories': categories,
             'subcategories': subcategories,
+            'subsubcategories': subsubcategories,
             'total_xp': custom_user.total_xp,
         })
     else:
@@ -475,7 +530,12 @@ def complete_task(request):
         task.save()
 
         # Update subcategory XP
-        subcategory = task.subcategory
+        subsubcategory = task.subsubcategory
+        subsubcategory.xp += task.xp
+        subsubcategory.save()
+
+        # Update subcategory XP
+        subcategory = subsubcategory.subcategory
         subcategory.xp += task.xp
         subcategory.save()
 
@@ -499,11 +559,11 @@ def complete_task(request):
                 task.save()
 
             # Get user's selected subcategories
-            selected_subcats = custom_user.pathway.all()
-            subcat_ids = [subcat.id for subcat in selected_subcats]
+            selected_subsubcats = custom_user.pathway.all()
+            subsubcat_ids = [subsubcat.id for subsubcat in selected_subsubcats]
 
             # Filter tasks to only selected subcategories
-            available_tasks = Task.objects.filter(subcategory__in=subcat_ids, 
+            available_tasks = Task.objects.filter(subsubcategory__in=subsubcat_ids, 
                                                 completed=False)
             # Shuffle and save new tasks
             if user_difficulty == "Easy":
@@ -527,11 +587,11 @@ def complete_task(request):
                 task.save()
 
             # Get user's selected subcategories
-            selected_subcats = custom_user.pathway.all()
-            subcat_ids = [subcat.id for subcat in selected_subcats]
+            selected_subsubcats = custom_user.pathway.all()
+            subsubcat_ids = [subsubcat.id for subsubcat in selected_subsubcats]
 
             # Filter tasks to only selected subcategories
-            available_tasks = Task.objects.filter(subcategory__in=subcat_ids, 
+            available_tasks = Task.objects.filter(subsubcategory__in=subsubcat_ids, 
                                                 completed=False)
             # Shuffle and save new tasks
             if user_difficulty == "Easy":
@@ -555,11 +615,11 @@ def complete_task(request):
                 task.save()
 
             # Get user's selected subcategories
-            selected_subcats = custom_user.pathway.all()
-            subcat_ids = [subcat.id for subcat in selected_subcats]
+            selected_subsubcats = custom_user.pathway.all()
+            subsubcat_ids = [subsubcat.id for subsubcat in selected_subsubcats]
 
             # Filter tasks to only selected subcategories
-            available_tasks = Task.objects.filter(subcategory__in=subcat_ids, 
+            available_tasks = Task.objects.filter(subsubcategory__in=subsubcat_ids, 
                                                 completed=False)
             # Shuffle and save new tasks
             if user_difficulty == "Easy":
@@ -577,11 +637,15 @@ def complete_task(request):
 
         custom_user.save()
 
-        if subcategory.xp > 1000:
+        if subsubcategory.xp > 1000:
+            subsubcategory.xp = subsubcategory.xp - 1000
+            subsubcategory.level += 1
+            subsubcategory.save()
+        if subcategory.xp > 10000:
             subcategory.xp = subcategory.xp - 1000
             subcategory.level += 1
             subcategory.save()
-        if category.xp > 10000:
+        if category.xp > 100000:
             category.xp = category.xp - 10000
             category.level += 1
             custom_user.level += 1

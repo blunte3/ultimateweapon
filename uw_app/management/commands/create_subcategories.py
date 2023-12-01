@@ -9,12 +9,13 @@ class Command(BaseCommand):
         categories = Category.objects.all()
 
         subcategories_per_category = {
-            'Creativity': ['Music', 'Art', 'Writing', 'Digital'],
+            'Creativity': ['Instruments', 'Art', 'Writing', 'Digital', 'Voice'],
             'Intelligence': ['Musical-Rhythmic', 'Visual-Spatial', 'Linguistic-Verbal', 'Logical-Mathematical', 'Bodily-Kinesthetic', 'Interpersonal', 'Intrapersonal', 'Existential', 'Naturalist'],
-            'Essentials': ['Cooking', 'Cleaning', 'Fixing', 'Fighting', 'Survival'],
+            'Essentials': ['Kitchen', 'Cleaning', 'Handy-Man', 'Fighting', 'Survival'],
             'Knowledge': ['History', 'Science', 'Random', 'Philosophy'],
             'Games': ['Video', 'Barbecue', 'Board', 'Sports'],
-            'Cognition': ['WorkingMemory', 'ExecutiveFunction','Memory'],
+            'Secret Agent': ['Security / Hacking', 'Reconnaissance', 'Parkour'],
+            'Brain': ['Cognitive Function', 'Emotional Function','Motor Function'],
             # Add more categories and subcategories as needed
         }
 

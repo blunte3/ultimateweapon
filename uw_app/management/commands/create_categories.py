@@ -6,7 +6,7 @@ class Command(BaseCommand):
     help = 'Create categories'
 
     def handle(self, *args, **options):
-        categories = ['Creativity', 'Intelligence', 'Essentials', 'Knowledge', 'Games']
+        categories = ['Creativity', 'Intelligence', 'Essentials', 'Knowledge', 'Games', 'Secret Agent', 'Brain']
         
         for category_name in categories:
             Category.objects.create(name=category_name)
